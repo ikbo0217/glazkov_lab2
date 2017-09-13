@@ -12,7 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define BUFSIZE = 2048;
+#define BUFSIZE 2048
 
 FILE *fdopen(int fd, const char *mode);
 
