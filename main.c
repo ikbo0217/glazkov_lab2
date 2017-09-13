@@ -15,6 +15,7 @@
 #define BUFSIZE 2048
 
 FILE *fdopen(int fd, const char *mode);
+ssize_t getdelim(char **restrict lineptr, size_t *restrict n, int delimiter, FILE *restrict stream);
 
 void error404(FILE *stream, char *DEFAULT404){
   int fd;
