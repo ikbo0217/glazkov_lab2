@@ -15,6 +15,7 @@
 #define BUFSIZE 2048
 
 FILE *fdopen(int fd, const char *mode);
+char *fgets(char *str, int n, FILE *stream);
 
 void error404(FILE *stream, char *DEFAULT404){
   int fd;
@@ -59,7 +60,6 @@ int main(int argc, char *argv[]){
   struct stat cfgsize;
   FILE *cfg;
   char buffer[BUFSIZE];
-  size_t len;
 
   int PORT = 8080;
   char DEFAULTPAGE[BUFSIZE];
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]){
   cfg = fopen("./config.cfg", "r");
   fgets(buffer, BUFSIZE, cfg);
 
-  sscanf(buffer, "%d %s %s %s\n", PORT, DEFAULTPAGE, DEFAULT404, DEFAULT403);
+  sscanf(buffer, "%d %s %s %s\n", &PORT, DEFAULTPAGE, DEFAULT404, DEFAULT403);
 
   /* initialize process and logging */
   FILE *fp= NULL;
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]){
     printf("%s\n", buf);
 
     /* logging */
-    fprintf(fp, "%s\n");
+    fprintf(fp, "%s\n", buf);
     fflush(fp);
 
     while(strcmp(buf, "\r\n")) {
