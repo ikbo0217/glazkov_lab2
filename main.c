@@ -24,11 +24,29 @@ char error403[] =
 "<body><center><h1>Error 403 sori</h1></center></body></html>\r\n";
 
 void error404(FILE *stream){
-  fprintf(stream, "HTTP/1.1 404 Forbidden\r\n");
+  /* print response header */
+  fprintf(stream, "HTTP/1.1 404 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
-  fprintf(stream, "<!DOCTYPE html>\r\n");
-  fprintf(stream, "<html><head><title>:(</title></head>\r\n");
-  fprintf(stream, "<body><center><h1>No such file sori</h1></center></body></html>\r\n");
+  fflush(stream);
+  
+  /* open file and write it to response */
+  fd = open("404.html", O_RDONLY);
+  p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+  fwrite(p, 1, sizebuf.st_size, stream);
+  munmap(p, sizebuf.st_size);
+}
+
+void error403(FILE *stream){
+  /* print response header */
+  fprintf(stream, "HTTP/1.1 403 Forbidden\n");
+  fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
+  fflush(stream);
+  
+  /* open file and write it to response */
+  fd = open("403.html", O_RDONLY);
+  p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+  fwrite(p, 1, sizebuf.st_size, stream);
+  munmap(p, sizebuf.st_size);
 }
 
 int main(int argc, char *argv[]){
@@ -84,7 +102,7 @@ int main(int argc, char *argv[]){
     }
 
     if((stream = fdopen(fd_client, "r+")) == NULL){
-      perror("ERROR on fdopen");
+      perror("ERROR on fdopen\n");
       continue;
     }
 
@@ -112,7 +130,7 @@ int main(int argc, char *argv[]){
 
     /* get file size and check if it exists */
     if(stat(filename, &sizebuf) < 0){
-      printf("no such file %s", filename);
+      printf("no such file %s\n", filename);
       error404(stream);
       fclose(stream);
       close(fd_client);
@@ -130,6 +148,17 @@ int main(int argc, char *argv[]){
       strcpy(filetype, "text/plain");
     }
 
+    /* open file and write it to response */
+    fd = open(filename, O_RDONLY);
+    
+    if(fd < 0){
+      printf("access denied %s\n", filename);
+      error403(stream);
+      fclose(stream);
+      close(fd_client);
+      continue;
+    }
+
     /* print response header */
     fprintf(stream, "HTTP/1.1 200 OK\n");
     fprintf(stream, "Server: Lol\n");
@@ -137,9 +166,7 @@ int main(int argc, char *argv[]){
     fprintf(stream, "Content-type: %s\n", filetype);
     fprintf(stream, "\r\n"); 
     fflush(stream);
-    
-    /* Use mmap to return arbitrary-sized response body */
-    fd = open(filename, O_RDONLY);
+
     p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     fwrite(p, 1, sizebuf.st_size, stream);
     munmap(p, sizebuf.st_size);
