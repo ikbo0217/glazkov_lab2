@@ -1,0 +1,1 @@
+gcc --std=c89 -Wall -Werror main.c
