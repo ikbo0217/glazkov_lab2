@@ -21,8 +21,8 @@ char webpage[] =
 
 int main(int argc, char *argv[]){
   /* Initialize the server */
-  struct sockaddress_in server_address, client_address;
-  socketlen_t sin_len = sizeof(client_address);
+  struct sockaddr_in server_addr, client_addr;
+  socketlen_t sin_len = sizeof(client_addr);
   int fd_server , fd_client;
   char buf[2048];
   int fdimg;
@@ -35,11 +35,11 @@ int main(int argc, char *argv[]){
 
   setsockopt(fd_server, SOL_Socket, SO_REUSEADDR, &on, sizeof(int));
 
-  server_address.sin_family = AF_INET;
-  server_address.sin_addr.s_addr = INADDR_ANY;
-  server_address.sin_port = htons(80);
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_addr.s_addr = INADDR_ANY;
+  server_addr.sin_port = htons(80);
   
-  if(bind(fd_server, (struct sockaddress *) &server_address, sizeof(server_address)) == -1){
+  if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
     perror("bind");
     close(fd_server);
     exit(1);
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
   }
 
   while(1){
-    fd_client = accept(fd_server, (struct sockaddress *) &client_address, &sin_len);
+    fd_client = accept(fd_server, (struct sockaddr *) &client_addr, &sin_len);
 
     if(fd_client == -1){
       perror("failed connection\n");
