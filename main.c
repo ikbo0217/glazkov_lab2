@@ -171,15 +171,17 @@ int main(int argc, char *argv[]){
     fgets(buf, BUFSIZE, stream);
 
     printf("%s\n", buf);
+
+    /* logging */
+    fprintf(fp, "%s\n", buf);
+    fflush(fp);
+
+    /* get method, uri and version for whatever reason */
     sscanf(buf, "%s %s %s\n", method, uri, version);
 
     /* get full buffer */
     fgets(buf, BUFSIZE, stream);
     printf("%s\n", buf);
-
-    /* logging */
-    fprintf(fp, "%s\n", buf);
-    fflush(fp);
 
     while(strcmp(buf, "\r\n")) {
       fgets(buf, BUFSIZE, stream);
