@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <libconfig.h>
 
 #define BUFSIZE 2048
 #define PORT 8080
@@ -20,45 +21,103 @@
 
 FILE *fdopen(int fd, const char *mode);
 
-void error404(FILE *stream){
+void error404(FILE *stream, char default404[]){
   int fd;
   char *p;
   struct stat sizebuf;
 
   /* read file size */
-  stat(DEFAULT404, &sizebuf);
+  stat(default404, &sizebuf);
 
   /* print response header */
   fprintf(stream, "HTTP/1.1 404 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
   
   /* open file and write it to response */
-  fd = open(DEFAULT404, O_RDONLY);
+  fd = open(default404, O_RDONLY);
   p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   fwrite(p, 1, sizebuf.st_size, stream);
   munmap(p, sizebuf.st_size);
 }
 
-void error403(FILE *stream){
+void error403(FILE *stream, char default403){
   int fd;
   char *p;
   struct stat sizebuf;
 
   /* read file size */
-  stat(DEFAULT403, &sizebuf);
+  stat(default403, &sizebuf);
 
   /* print response header */
   fprintf(stream, "HTTP/1.1 403 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
   
   /* open file and write it to response */
-  fd = open(DEFAULT403, O_RDONLY);
+  fd = open(default403, O_RDONLY);
   p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   fwrite(p, 1, sizebuf.st_size, stream);
   munmap(p, sizebuf.st_size);
 }
 
 int main(int argc, char *argv[]){
+  /* initialize config */
+  config_t cfg;
+  int BUFSIZE = 2048;
+  int PORT = 8080;
+  char DEFAULT404[] = "404.html";
+  char DEFAULT403[] = "403.html";
+  char DEFAULTPAGE[] = "index.html";
+
+  config_init(&cfg);
+
+  /* read file and check if it exist */
+  if(!config_read_file(&cfg, "config.cfg")){
+    printf("cant loading config\n");
+    exit(1);
+  }
+
+  /* read all the variables */
+  config_lookup_string(&cfg, "bufsize", &BUFSIZE);
+  config_lookup_string(&cfg, "port", &PORT);
+
+  config_lookup_string(&cfg, "default404", &DEFAULT404);
+  config_lookup_string(&cfg, "default403", &DEFAULT403);
+  config_lookup_string(&cfg, "defaultpage", &DEFAULTPAGE);
+
+  /* initialize process and logging */
+  FILE *fp= NULL;
+  pid_t process_id = 0;
+  pid_t sid = 0;
+
+  /* create fork */
+  process_id = fork();
+
+  if(process_id < 0){
+    printf("fork failed!\n");
+    exit(1);
+  }
+  
+  /* kill parent process */
+  if(process_id > 0){
+    printf("process_id of child process %d \n", process_id);
+    exit(0);
+  }
+
+  umask(0);
+
+  sid = setsid();
+  if(sid < 0){
+    exit(1);
+  }
+
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+
+  /* open log file */
+  fp = fopen("Log.txt", "w+");
+  fclose(fp);
+
   /* initialize the server */
   FILE *stream;
   struct sockaddr_in server_addr, client_addr;
@@ -125,7 +184,12 @@ int main(int argc, char *argv[]){
 
     /* get full buffer */
     fgets(buf, BUFSIZE, stream);
-    printf("%s", buf);
+    printf("%s\m", buf);
+
+    /* logging */
+    fprintf(fp, "%s\n");
+    fflush(fp);
+
     while(strcmp(buf, "\r\n")) {
       fgets(buf, BUFSIZE, stream);
       printf("%s", buf);
@@ -140,7 +204,7 @@ int main(int argc, char *argv[]){
     /* get file size and check if it exists */
     if(stat(filename, &sizebuf) < 0){
       printf("no such file %s\n", filename);
-      error404(stream);
+      error404(stream, DEFAULT404);
       fclose(stream);
       close(fd_client);
       continue;
@@ -162,7 +226,7 @@ int main(int argc, char *argv[]){
     
     if(fd < 0){
       printf("access denied %s\n", filename);
-      error403(stream);
+      error403(stream, DEFAULT403);
       fclose(stream);
       close(fd_client);
       continue;
