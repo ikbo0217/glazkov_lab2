@@ -129,7 +129,11 @@ int main(int argc, char *argv[]){
   fd_server = socket(AF_INET, SOCK_STREAM, 0);
   if(fd_server < 0){
     perror("socket");
+    
+    fprintf(fp, "socket\n");
+    fflush(fp);
     fclose(fp);
+
     exit(1);
   }
 
@@ -143,7 +147,11 @@ int main(int argc, char *argv[]){
   if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
     perror("bind");
     close(fd_server);
+
+    fprintf(fp, "bind\n");
+    fflush(fp);
     fclose(fp);
+
     exit(1);
   }
 
@@ -151,7 +159,11 @@ int main(int argc, char *argv[]){
   if(listen(fd_server, 10) == -1){
     perror("listen");
     close(fd_server);
+    
+    fprintf(fp, "listen\n");
+    fflush(fp);
     fclose(fp);
+
     exit(1);
   }
 
