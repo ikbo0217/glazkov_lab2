@@ -24,10 +24,10 @@ char error403[] =
 "<body><center><h1>Error 403 sori</h1></center></body></html>\r\n";
 
 void error404(FILE *stream){
-  fprintf(stream, "HTTP/1.1 404 Forbidden\r\n")
-  fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n")
-  fprintf(stream, "<!DOCTYPE html>\r\n")
-  fprintf(stream, "<html><head><title>:(</title></head>\r\n")
+  fprintf(stream, "HTTP/1.1 404 Forbidden\r\n");
+  fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
+  fprintf(stream, "<!DOCTYPE html>\r\n");
+  fprintf(stream, "<html><head><title>:(</title></head>\r\n");
   fprintf(stream, "<body><center><h1>No such file sori</h1></center></body></html>\r\n");
 }
 
