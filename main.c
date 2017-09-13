@@ -72,14 +72,14 @@ int main(int argc, char *argv[]){
       printf("%s\n", buf);
 
       if(!strncmp(buf, "GET /favicon.ico", 16)){
-        printf("sending favicon.ico");
+        printf("sending favicon.ico\n");
         fdimg = open("favicon.ico", O_RDONLY);
         sendfile(fd_client, fdimg, NULL, 5000);
         close(fdimg);
       } else if(!strncmp(buf, "GET /doctest.png", 16)){
-        printf("sending doctest.png");
+        printf("sending doctest.png\n");
         fdimg = open("doctest.png", O_RDONLY);
-        sendfile(fd_client, fdimg, NULL, 7000);
+        sendfile(fd_client, fdimg, NULL, 6000);
         close(fdimg);
       } else {
         write(fd_client, webpage, sizeof(webpage) - 1);
