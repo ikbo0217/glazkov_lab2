@@ -130,11 +130,11 @@ int main(int argc, char *argv[]){
     /* try creating a socket */
     fd_server = socket(AF_INET, SOCK_STREAM, 0);
     if(fd_server < 0){
-      perror("socket");
-      
       fprintf(fp, "socket\n");
       fflush(fp);
       fclose(fp);
+      
+      perror("socket");
 
       exit(1);
     }
@@ -147,12 +147,12 @@ int main(int argc, char *argv[]){
     
     /* try binding */
     if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
-      perror("bind");
-      close(fd_server);
-
-      fprintf(fp, "bind\n");
+      fprintf(fp, "bind: %d:%s\n", errno, strerror(errno));
       fflush(fp);
       fclose(fp);
+
+      perror("bind");
+      close(fd_server);
 
       exit(1);
     }
