@@ -89,7 +89,7 @@ int main(int argc, char *argv[]){
       } else if(!strncmp(buf, "GET /doctest.png", 16)){
         printf("sending doctest.png\n");
         fdimg = open("doctest.png", O_RDONLY);
-        rc sendfile(fd_client, fdimg, NULL, 6000);
+        sendfile(fd_client, fdimg, NULL, 6000);
         close(fdimg);
       } else {
         write(fd_client, webpage, sizeof(webpage) - 1);
