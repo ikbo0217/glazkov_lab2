@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/sendfile.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -71,10 +72,12 @@ int main(int argc, char *argv[]){
       printf("%s\n", buf);
 
       if(!strncmp(buf, "GET /favicon.ico", 16)){
+        printf("sending favicon.ico");
         fdimg = open("favicon.ico", O_RDONLY);
         sendfile(fd_client, fdimg, NULL, 5000);
         close(fdimg);
       } else if(!strncmp(buf, "GET /doctest.png", 16)){
+        printf("sending doctest.png");
         fdimg = open("doctest.png", O_RDONLY);
         sendfile(fd_client, fdimg, NULL, 7000);
         close(fdimg);
