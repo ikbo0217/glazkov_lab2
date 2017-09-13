@@ -84,14 +84,24 @@ int main(int argc, char *argv[]){
 
     if((stream = fdopen(fd_client, "r+")) == NULL){
       perror("ERROR on fdopen");
+      continue;
     }
 
     printf("connection\n");
 
+    /* get method, uri and version */
     fgets(buf, BUFSIZE, stream);
 
     printf("%s\n", buf);
     sscanf(buf, "%s %s %s\n", method, uri, version);
+
+    /* get full buffer */
+    fgets(buf, BUFSIZE, stream);
+    printf("%s", buf);
+    while(strcmp(buf, "\r\n")) {
+      fgets(buf, BUFSIZE, stream);
+      printf("%s", buf);
+    }
 
     strcpy(filename, ".");
     strcat(filename, uri);
@@ -101,7 +111,8 @@ int main(int argc, char *argv[]){
 
     /* get file size and check if it exists */
     if(stat(filename, &sizebuf) < 0){
-      write(fd_client, error404, sizeof(error404) - 1);
+      printf("no such file %s", filename);
+      fprintf(stream, error404);
       fclose(stream);
       close(fd_client);
       continue;
