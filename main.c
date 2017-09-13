@@ -108,7 +108,6 @@ int main(int argc, char *argv[]){
 
   /* open log file */
   fp = fopen("log.txt", "w+");
-  fclose(fp);
 
   /* initialize the server */
   FILE *stream;
@@ -240,6 +239,8 @@ int main(int argc, char *argv[]){
     fclose(stream);
     close(fd_client);
   }
+
+  fclose(fp);
 
   return 0;
 }
