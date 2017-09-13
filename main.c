@@ -78,7 +78,6 @@ int main(int argc, char *argv[]){
 
   /* initialize process and logging */
   FILE *fp= NULL;
-  
 
   /* open log file */
   fp = fopen("log.txt", "w+");
