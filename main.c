@@ -127,7 +127,6 @@ int main(int argc, char *argv[]){
     int on = 1;
     char *p;
     struct stat sizebuf;
-    int optional = 1;
 
     /* try creating a socket */
     fd_server = socket(AF_INET, SOCK_STREAM, 0);
@@ -143,16 +142,14 @@ int main(int argc, char *argv[]){
     }
 
     /* re-using socket port */
-    if(setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &optional, sizeof(optional)) < 0){
+    if(setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int)) < 0){
       fprintf(fp, "re-using port: %s\n", strerror(errno));
       fflush(fp);
       fclose(fp);
 
       perror("error re-using the port");
       exit(1);
-    } 
-
-    setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int));
+    }
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
