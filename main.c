@@ -58,9 +58,8 @@ int main(int argc, char *argv[]){
   /* initialize config */
   struct stat cfgsize;
   FILE *cfg;
-  char* buffer = NULL;
+  char buffer[BUFSIZE];
   size_t len;
-  ssize_t bytes_read;
 
   int PORT = 8080;
   char DEFAULTPAGE[BUFSIZE];
@@ -73,12 +72,7 @@ int main(int argc, char *argv[]){
   }
 
   cfg = fopen("./config.cfg", "r");
-  bytes_read = fgets(&buffer, &len, cfg);
-
-  if(bytes_read == -1){
-    printf("cant load config\n");
-    exit(1);
-  }
+  fgets(&buffer, &len, cfg);
 
   sscanf(buffer, "%d %s %s %s\n", PORT, DEFAULTPAGE, DEFAULT404, DEFAULT403);
 
