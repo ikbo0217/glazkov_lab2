@@ -129,6 +129,7 @@ int main(int argc, char *argv[]){
   fd_server = socket(AF_INET, SOCK_STREAM, 0);
   if(fd_server < 0){
     perror("socket");
+    fclose(fp);
     exit(1);
   }
 
@@ -142,6 +143,7 @@ int main(int argc, char *argv[]){
   if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
     perror("bind");
     close(fd_server);
+    fclose(fp);
     exit(1);
   }
 
@@ -149,6 +151,7 @@ int main(int argc, char *argv[]){
   if(listen(fd_server, 10) == -1){
     perror("listen");
     close(fd_server);
+    fclose(fp);
     exit(1);
   }
 
@@ -157,15 +160,22 @@ int main(int argc, char *argv[]){
 
     if(fd_client == -1){
       perror("failed connection\n");
+      fprintf(fp, "failed connection\n");
+      fflush(fp);
       continue;
     }
 
     if((stream = fdopen(fd_client, "r+")) == NULL){
       perror("ERROR on fdopen\n");
+      fprintf(fp, "Error on fdopen\n");
+      fflush(fp);
       continue;
     }
 
     printf("connection\n");
+
+    fprintf(fp, "connection\n");
+    fflush(fp);
 
     /* get method, uri and version */
     fgets(buf, BUFSIZE, stream);
@@ -197,7 +207,15 @@ int main(int argc, char *argv[]){
     /* get file size and check if it exists */
     if(stat(filename, &sizebuf) < 0){
       printf("no such file %s\n", filename);
+
+      fprintf(fp, "no such file %s\n", filename);
+      fflush(fp);
+
       error404(stream, DEFAULT404);
+
+      fprintf(fp, "closed\n");
+      fflush(fp);
+
       fclose(stream);
       close(fd_client);
       continue;
@@ -219,7 +237,15 @@ int main(int argc, char *argv[]){
     
     if(fd < 0){
       printf("access denied %s\n", filename);
+
+      fprintf(fp, "access denied %s\n", filename);
+      fflush(fp);
+
       error403(stream, DEFAULT403);
+
+      fprintf(fp, "closed\n");
+      fflush(fp);
+
       fclose(stream);
       close(fd_client);
       continue;
@@ -236,6 +262,9 @@ int main(int argc, char *argv[]){
     p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     fwrite(p, 1, sizebuf.st_size, stream);
     munmap(p, sizebuf.st_size);
+
+    fprintf(fp, "closed\n");
+    fflush(fp);
 
     /* close the stream */
     fclose(stream);
