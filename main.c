@@ -78,33 +78,7 @@ int main(int argc, char *argv[]){
 
   /* initialize process and logging */
   FILE *fp= NULL;
-  pid_t process_id = 0;
-  pid_t sid = 0;
-
-  /* create fork */
-  process_id = fork();
-
-  if(process_id < 0){
-    printf("fork failed!\n");
-    exit(1);
-  }
   
-  /* kill parent process */
-  if(process_id > 0){
-    printf("process_id of child process %d \n", process_id);
-    exit(0);
-  }
-
-  umask(0);
-
-  sid = setsid();
-  if(sid < 0){
-    exit(1);
-  }
-
-  close(STDIN_FILENO);
-  close(STDOUT_FILENO);
-  close(STDERR_FILENO);
 
   /* open log file */
   fp = fopen("log.txt", "w+");
@@ -159,7 +133,7 @@ int main(int argc, char *argv[]){
   if(listen(fd_server, 10) == -1){
     perror("listen");
     close(fd_server);
-    
+
     fprintf(fp, "listen\n");
     fflush(fp);
     fclose(fp);
