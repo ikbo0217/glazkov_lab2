@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
   }
 
   cfg = fopen("./config.cfg", "r");
-  fgets(&buffer, &len, cfg);
+  fgets(buffer, BUFSIZE, cfg);
 
   sscanf(buffer, "%d %s %s %s\n", PORT, DEFAULTPAGE, DEFAULT404, DEFAULT403);
 
