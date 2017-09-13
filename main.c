@@ -12,8 +12,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define BUFSIZE = 2048;
-#define PORT = 8080;
+#define BUFSIZE 2048;
+#define PORT 8080;
+#define DEFAULTPAGE "index.html";
 
 char error403[] = 
 "HTTP/1.1 403 Forbidden\r\n"
@@ -93,7 +94,7 @@ int main(int argc, char *argv[]){
     strcpy(filename, ".");
     strcat(filename, uri);
     if(uri[strlen(uri)-1] == '/'){
-      strcat(filename, "index.html");
+      strcat(filename, DEFAULTPAGE);
     }
 
     /* get file size and check if it exists */
