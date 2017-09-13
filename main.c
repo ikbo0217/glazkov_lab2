@@ -21,6 +21,10 @@
 FILE *fdopen(int fd, const char *mode);
 
 void error404(FILE *stream){
+  int fd;
+  char *p;
+  struct stat sizebuf;
+
   /* read file size */
   stat(DEFAULT404, &sizebuf);
 
@@ -37,6 +41,10 @@ void error404(FILE *stream){
 }
 
 void error403(FILE *stream){
+  int fd;
+  char *p;
+  struct stat sizebuf;
+  
   /* read file size */
   stat(DEFAULT403, &sizebuf);
 
