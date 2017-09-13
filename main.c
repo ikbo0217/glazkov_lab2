@@ -182,7 +182,7 @@ int main(int argc, char *argv[]){
 
     /* get full buffer */
     fgets(buf, BUFSIZE, stream);
-    printf("%s\m", buf);
+    printf("%s\n", buf);
 
     /* logging */
     fprintf(fp, "%s\n");
