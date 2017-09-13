@@ -12,7 +12,7 @@
 
 char webpage[] = 
 "HTTP/1.1 200 OK\r\n"
-"Content-Type: text/html; charset=UTF-8\r\n\r\n";
+"Content-Type: text/html; charset=UTF-8\r\n\r\n"
 "<!DOCTYPE html>\r\n"
 "<html><head><title>LOL</title>\r\n"
 "<style>body { background-color: blue }</style></head>\r\n"
@@ -26,6 +26,7 @@ int main(int argc, char *argv[]){
   int fd_server , fd_client;
   char buf[2048];
   int fdimg;
+  int on = 1;
 
   fd_server = socket(AF_INET, SOCK_STREAM, 0);
   if(fd_server < 0){
