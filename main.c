@@ -11,28 +11,43 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-char webpage[] = 
-"HTTP/1.1 200 OK\r\n"
+#define BUFSIZE = 2048;
+#define PORT = 8080;
+#define DEFAULTPAGE = "index.html";
+
+char error403[] = 
+"HTTP/1.1 403 Forbidden\r\n"
 "Content-Type: text/html; charset=UTF-8\r\n\r\n"
 "<!DOCTYPE html>\r\n"
-"<html><head><title>LOL</title>\r\n"
-"<style>body { background-color: blue }</style></head>\r\n"
-"<body><center><h1>Lol hi there</h1></center>\r\n"
-"<img src=\"doctest.png\"></body></html>\r\n";
+"<html><head><title>:(</title></head>\r\n"
+"<body><center><h1>Error 403 sori</h1></center></body></html>\r\n";
+
+char error404[] = 
+"HTTP/1.1 404 Forbidden\r\n"
+"Content-Type: text/html; charset=UTF-8\r\n\r\n"
+"<!DOCTYPE html>\r\n"
+"<html><head><title>:(</title></head>\r\n"
+"<body><center><h1>No such file sori</h1></center></body></html>\r\n";
 
 int main(int argc, char *argv[]){
-  /* Initialize the server */
+  /* initialize the server */
+  FILE *stream;
   struct sockaddr_in server_addr, client_addr;
   socklen_t sin_len = sizeof(client_addr);
-  int fd_server , fd_client;
-  char buf[2048];
-  int rc, fdimg;
+  int fd_server, fd_client;
+  char buf[BUFSIZE];
+  char uri[BUFSIZE];
+  char method[BUFSIZE];
+  char version[BUFSIZE];
+  char filename[BUFSIZE];
+  char filetype[BUFSIZE];
   int on = 1;
-  struct stat stat_buf;
+  struct stat sizebuf;
 
+  /* try creating a socket */
   fd_server = socket(AF_INET, SOCK_STREAM, 0);
   if(fd_server < 0){
-    perror("socket");
+    error("socket");
     exit(1);
   }
 
@@ -40,16 +55,18 @@ int main(int argc, char *argv[]){
 
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
-  server_addr.sin_port = htons(8080);
+  server_addr.sin_port = htons(PORT);
   
+  /* try binding */
   if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
-    perror("bind");
+    error("bind");
     close(fd_server);
     exit(1);
   }
 
+  /* if more than 10 connections are queued than stop */
   if(listen(fd_server, 10) == -1){
-    perror("listen");
+    error("listen");
     close(fd_server);
     exit(1);
   }
@@ -62,46 +79,59 @@ int main(int argc, char *argv[]){
       continue;
     }
 
-    printf("connection\n");
-
-    if(!fork()){
-      /* Child process */
-      close(fd_server);
-      memset(buf, 0, 2048);
-      read(fd_client, buf, 2047);
-
-      printf("%s\n", buf);
-
-      if(!strncmp(buf, "GET /favicon.ico", 16)){
-        printf("sending favicon.ico\n");
-        fdimg = open("favicon.ico", O_RDONLY);
-
-        fstat(fdimg, &stat_buf);
-
-        rc = sendfile(fd_client, fdimg, NULL, stat_buf.st_size);
-
-        if(rc != stat_buf.st_size){
-          perror("incompleted file transfer");
-          exit(1);
-        }
-
-        close(fdimg);
-      } else if(!strncmp(buf, "GET /doctest.png", 16)){
-        printf("sending doctest.png\n");
-        fdimg = open("doctest.png", O_RDONLY);
-        sendfile(fd_client, fdimg, NULL, 6000);
-        close(fdimg);
-      } else {
-        write(fd_client, webpage, sizeof(webpage) - 1);
-      }
-
-      close(fd_client);
-      printf("closing\n");
-      exit(0);
+    if((stream = fdopen(childfd, "r+")) == NULL){
+      error("ERROR on fdopen");
     }
 
-    /* Parent process */
-    close(fd_client);
+    printf("connection\n");
+
+    fgets(buf, BUFSIZE, stream);
+
+    printf("%s\n", buf);
+    sscanf(buf, "%s %s %s\n", method, uri, version);
+
+    strcpy(filename, ".");
+    strcat(filename, uri);
+    if(uri[strlen(uri)-1] == '/'){
+      strcat(filename, DEFAULTPAGE);
+    }
+
+    /* get file size and check if it exists */
+    if(stat(filename, &sizebuf) < 0){
+      write(fd_client, error404, sizeof(error404) - 1);
+      fclose(stream);
+      close(childfd);
+      continue;
+    }
+
+    /* get filetype */
+    if(strstr(filename, ".html")){
+      strcpy(filetype, "text/html");
+    } else if(strstr(filename, ".gif")){
+      strcpy(filetype, "image/gif");
+    } else if(strstr(filename, ".jpg")){
+      strcpy(filetype, "image/jpg");
+    } else {
+      strcpy(filetype, "text/plain");
+    }
+
+    /* print response header */
+    fprintf(stream, "HTTP/1.1 200 OK\n");
+    fprintf(stream, "Server: Lol\n");
+    fprintf(stream, "Content-length: %d\n", (int)sizebuf.st_size);
+    fprintf(stream, "Content-type: %s\n", filetype);
+    fprintf(stream, "\r\n"); 
+    fflush(stream);
+    
+    /* Use mmap to return arbitrary-sized response body */
+    fd = open(filename, O_RDONLY);
+    p = mmap(0, sbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    fwrite(p, 1, sbuf.st_size, stream);
+    munmap(p, sbuf.st_size);
+
+    /* close the stream */
+    fclose(stream);
+    close(childfd);
   }
 
   return 0;
