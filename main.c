@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
     exit(1);
   }
 
-  setsockopt(fd_server, SOL_Socket, SO_REUSEADDR, &on, sizeof(int));
+  setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int));
 
   server_addr.sin_family = AF_INET;
   server_addr.sin_addr.s_addr = INADDR_ANY;
