@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
       continue;
     }
 
-    if((stream = fdopen(childfd, "r+")) == NULL){
+    if((stream = fdopen(fd_client, "r+")) == NULL){
       perror("ERROR on fdopen");
     }
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]){
     if(stat(filename, &sizebuf) < 0){
       write(fd_client, error404, sizeof(error404) - 1);
       fclose(stream);
-      close(childfd);
+      close(fd_client);
       continue;
     }
 
@@ -127,13 +127,13 @@ int main(int argc, char *argv[]){
     
     /* Use mmap to return arbitrary-sized response body */
     fd = open(filename, O_RDONLY);
-    p = mmap(0, sbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    fwrite(p, 1, sbuf.st_size, stream);
-    munmap(p, sbuf.st_size);
+    p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    fwrite(p, 1, sizebuf.st_size, stream);
+    munmap(p, sizebuf.st_size);
 
     /* close the stream */
     fclose(stream);
-    close(childfd);
+    close(fd_client);
   }
 
   return 0;
