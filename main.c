@@ -15,35 +15,38 @@
 #define BUFSIZE 2048
 #define PORT 8080
 #define DEFAULTPAGE "index.html"
+#define DEFAULT404 "404.html"
+#define DEFAULT403 "403.html"
 
-char error403[] = 
-"HTTP/1.1 403 Forbidden\r\n"
-"Content-Type: text/html; charset=UTF-8\r\n\r\n"
-"<!DOCTYPE html>\r\n"
-"<html><head><title>:(</title></head>\r\n"
-"<body><center><h1>Error 403 sori</h1></center></body></html>\r\n";
+FILE *fdopen(int fd, const char *mode);
 
 void error404(FILE *stream){
+  /* read file size */
+  stat(DEFAULT404, &sizebuf);
+
   /* print response header */
   fprintf(stream, "HTTP/1.1 404 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
   fflush(stream);
   
   /* open file and write it to response */
-  fd = open("404.html", O_RDONLY);
+  fd = open(DEFAULT404, O_RDONLY);
   p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   fwrite(p, 1, sizebuf.st_size, stream);
   munmap(p, sizebuf.st_size);
 }
 
 void error403(FILE *stream){
+  /* read file size */
+  stat(DEFAULT403, &sizebuf);
+
   /* print response header */
   fprintf(stream, "HTTP/1.1 403 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
   fflush(stream);
   
   /* open file and write it to response */
-  fd = open("403.html", O_RDONLY);
+  fd = open(DEFAULT403, O_RDONLY);
   p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   fwrite(p, 1, sizebuf.st_size, stream);
   munmap(p, sizebuf.st_size);
