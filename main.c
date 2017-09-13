@@ -26,8 +26,9 @@ int main(int argc, char *argv[]){
   socklen_t sin_len = sizeof(client_addr);
   int fd_server , fd_client;
   char buf[2048];
-  int fdimg;
+  int rc, fdimg;
   int on = 1;
+  struct stat stat_buf;
 
   fd_server = socket(AF_INET, SOCK_STREAM, 0);
   if(fd_server < 0){
@@ -74,12 +75,21 @@ int main(int argc, char *argv[]){
       if(!strncmp(buf, "GET /favicon.ico", 16)){
         printf("sending favicon.ico\n");
         fdimg = open("favicon.ico", O_RDONLY);
-        sendfile(fd_client, fdimg, NULL, 5000);
+
+        fstat(fdimg, &stat_buf);
+
+        rc = sendfile(fd_client, fdimg, NULL, stat_buf.st_size);
+
+        if(rc != stat_buf.st_size){
+          perror("incompleted file transfer");
+          exit(1);
+        }
+
         close(fdimg);
       } else if(!strncmp(buf, "GET /doctest.png", 16)){
         printf("sending doctest.png\n");
         fdimg = open("doctest.png", O_RDONLY);
-        sendfile(fd_client, fdimg, NULL, 6000);
+        rc sendfile(fd_client, fdimg, NULL, 6000);
         close(fdimg);
       } else {
         write(fd_client, webpage, sizeof(webpage) - 1);
