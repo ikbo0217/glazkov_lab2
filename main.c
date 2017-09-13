@@ -22,7 +22,7 @@ char webpage[] =
 int main(int argc, char *argv[]){
   /* Initialize the server */
   struct sockaddr_in server_addr, client_addr;
-  socketlen_t sin_len = sizeof(client_addr);
+  socklen_t sin_len = sizeof(client_addr);
   int fd_server , fd_client;
   char buf[2048];
   int fdimg;
