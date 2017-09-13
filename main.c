@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <errno.h>
 
 #define BUFSIZE 2048
 
@@ -126,9 +127,11 @@ int main(int argc, char *argv[]){
     int on = 1;
     char *p;
     struct stat sizebuf;
+    int optional = 1;
 
     /* try creating a socket */
     fd_server = socket(AF_INET, SOCK_STREAM, 0);
+
     if(fd_server < 0){
       fprintf(fp, "socket\n");
       fflush(fp);
@@ -139,6 +142,16 @@ int main(int argc, char *argv[]){
       exit(1);
     }
 
+    /* re-using socket port */
+    if(setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &optional, sizeof(optional)) < 0){
+      fprintf(fp, "re-using port: %s\n", strerror(errno));
+      fflush(fp);
+      fclose(fp);
+
+      perror("error re-using the port");
+      exit(1);
+    } 
+
     setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(int));
 
     server_addr.sin_family = AF_INET;
@@ -146,8 +159,8 @@ int main(int argc, char *argv[]){
     server_addr.sin_port = htons(PORT);
     
     /* try binding */
-    if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
-      fprintf(fp, "bind: %d:%s\n", errno, strerror(errno));
+    if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0){
+      fprintf(fp, "bind: %s\n", strerror(errno));
       fflush(fp);
       fclose(fp);
 
