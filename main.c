@@ -42,13 +42,14 @@ int main(int argc, char *argv[]){
   char version[BUFSIZE];
   char filename[BUFSIZE];
   char filetype[BUFSIZE];
+  int fd;
   int on = 1;
   struct stat sizebuf;
 
   /* try creating a socket */
   fd_server = socket(AF_INET, SOCK_STREAM, 0);
   if(fd_server < 0){
-    error("socket");
+    perror("socket");
     exit(1);
   }
 
@@ -60,14 +61,14 @@ int main(int argc, char *argv[]){
   
   /* try binding */
   if(bind(fd_server, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1){
-    error("bind");
+    perror("bind");
     close(fd_server);
     exit(1);
   }
 
   /* if more than 10 connections are queued than stop */
   if(listen(fd_server, 10) == -1){
-    error("listen");
+    perror("listen");
     close(fd_server);
     exit(1);
   }
@@ -81,7 +82,7 @@ int main(int argc, char *argv[]){
     }
 
     if((stream = fdopen(childfd, "r+")) == NULL){
-      error("ERROR on fdopen");
+      perror("ERROR on fdopen");
     }
 
     printf("connection\n");
