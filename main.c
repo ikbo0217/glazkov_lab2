@@ -31,7 +31,6 @@ void error404(FILE *stream){
   /* print response header */
   fprintf(stream, "HTTP/1.1 404 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
-  fflush(stream);
   
   /* open file and write it to response */
   fd = open(DEFAULT404, O_RDONLY);
@@ -44,14 +43,13 @@ void error403(FILE *stream){
   int fd;
   char *p;
   struct stat sizebuf;
-  
+
   /* read file size */
   stat(DEFAULT403, &sizebuf);
 
   /* print response header */
   fprintf(stream, "HTTP/1.1 403 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
-  fflush(stream);
   
   /* open file and write it to response */
   fd = open(DEFAULT403, O_RDONLY);
