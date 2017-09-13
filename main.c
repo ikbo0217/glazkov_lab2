@@ -23,12 +23,13 @@ char error403[] =
 "<html><head><title>:(</title></head>\r\n"
 "<body><center><h1>Error 403 sori</h1></center></body></html>\r\n";
 
-char error404[] = 
-"HTTP/1.1 404 Forbidden\r\n"
-"Content-Type: text/html; charset=UTF-8\r\n\r\n"
-"<!DOCTYPE html>\r\n"
-"<html><head><title>:(</title></head>\r\n"
-"<body><center><h1>No such file sori</h1></center></body></html>\r\n";
+void error404(FILE *stream){
+  fprintf(stream, "HTTP/1.1 404 Forbidden\r\n")
+  fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n")
+  fprintf(stream, "<!DOCTYPE html>\r\n")
+  fprintf(stream, "<html><head><title>:(</title></head>\r\n")
+  fprintf(stream, "<body><center><h1>No such file sori</h1></center></body></html>\r\n");
+}
 
 int main(int argc, char *argv[]){
   /* initialize the server */
@@ -112,7 +113,7 @@ int main(int argc, char *argv[]){
     /* get file size and check if it exists */
     if(stat(filename, &sizebuf) < 0){
       printf("no such file %s", filename);
-      fprintf(stream, error404);
+      error404(stream);
       fclose(stream);
       close(fd_client);
       continue;
