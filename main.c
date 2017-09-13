@@ -11,49 +11,44 @@
 #include <sys/wait.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <libconfig.h>
 
-#define BUFSIZE 2048
-#define PORT 8080
-#define DEFAULTPAGE "index.html"
-#define DEFAULT404 "404.html"
-#define DEFAULT403 "403.html"
+#define BUFSIZE = 2048;
 
 FILE *fdopen(int fd, const char *mode);
 
-void error404(FILE *stream, char default404[]){
+void error404(FILE *stream, char *DEFAULT404){
   int fd;
   char *p;
   struct stat sizebuf;
 
   /* read file size */
-  stat(default404, &sizebuf);
+  stat(DEFAULT404, &sizebuf);
 
   /* print response header */
   fprintf(stream, "HTTP/1.1 404 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
   
   /* open file and write it to response */
-  fd = open(default404, O_RDONLY);
+  fd = open(DEFAULT404, O_RDONLY);
   p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   fwrite(p, 1, sizebuf.st_size, stream);
   munmap(p, sizebuf.st_size);
 }
 
-void error403(FILE *stream, char default403){
+void error403(FILE *stream, char *DEFAULT403){
   int fd;
   char *p;
   struct stat sizebuf;
 
   /* read file size */
-  stat(default403, &sizebuf);
+  stat(DEFAULT403, &sizebuf);
 
   /* print response header */
   fprintf(stream, "HTTP/1.1 403 Forbidden\n");
   fprintf(stream, "Content-Type: text/html; charset=UTF-8\r\n\r\n");
   
   /* open file and write it to response */
-  fd = open(default403, O_RDONLY);
+  fd = open(DEFAULT403, O_RDONLY);
   p = mmap(0, sizebuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   fwrite(p, 1, sizebuf.st_size, stream);
   munmap(p, sizebuf.st_size);
@@ -61,28 +56,31 @@ void error403(FILE *stream, char default403){
 
 int main(int argc, char *argv[]){
   /* initialize config */
-  config_t cfg;
-  int BUFSIZE = 2048;
+  struct stat cfgsize;
+  FILE *cfg;
+  char* buffer = NULL;
+  size_t len;
+  ssize_t bytes_read;
+
   int PORT = 8080;
-  char DEFAULT404[] = "404.html";
-  char DEFAULT403[] = "403.html";
-  char DEFAULTPAGE[] = "index.html";
+  char DEFAULTPAGE[BUFSIZE];
+  char DEFAULT404[BUFSIZE];
+  char DEFAULT403[BUFSIZE];
 
-  config_init(&cfg);
-
-  /* read file and check if it exist */
-  if(!config_read_file(&cfg, "config.cfg")){
-    printf("cant loading config\n");
+  if(stat("config.cfg", &cfgsize) < 0){
+    printf("cant load config\n");
     exit(1);
   }
 
-  /* read all the variables */
-  config_lookup_string(&cfg, "bufsize", &BUFSIZE);
-  config_lookup_string(&cfg, "port", &PORT);
+  cfg = fopen("./config.cfg", "r");
+  bytes_read = getdelim(&buffer, &len, '\0', cfg);
 
-  config_lookup_string(&cfg, "default404", &DEFAULT404);
-  config_lookup_string(&cfg, "default403", &DEFAULT403);
-  config_lookup_string(&cfg, "defaultpage", &DEFAULTPAGE);
+  if(bytes_read == -1){
+    printf("cant load config\n");
+    exit(1);
+  }
+
+  sscanf(buffer, "%d %s %s %s\n", PORT, DEFAULTPAGE, DEFAULT404, DEFAULT403);
 
   /* initialize process and logging */
   FILE *fp= NULL;
@@ -115,7 +113,7 @@ int main(int argc, char *argv[]){
   close(STDERR_FILENO);
 
   /* open log file */
-  fp = fopen("Log.txt", "w+");
+  fp = fopen("log.txt", "w+");
   fclose(fp);
 
   /* initialize the server */
