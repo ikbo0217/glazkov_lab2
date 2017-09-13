@@ -44,6 +44,7 @@ int main(int argc, char *argv[]){
   char filetype[BUFSIZE];
   int fd;
   int on = 1;
+  char *p;
   struct stat sizebuf;
 
   /* try creating a socket */
